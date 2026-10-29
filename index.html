@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fehlbesetzungsrechner – OnApply</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Goudy+Bookletter+1911&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* OnApply Brand Guideline */
+    --off-white: #F9FAEC;
+    --pale-wall: #DDD7B6;
+    --latte: #C6AC89;
+    --dark-chocolate: #4C2D17;
+    --burnt-orange: #AD5106;
+    --vermilion: #F9603B;
+
+    --ink: var(--dark-chocolate);
+    --ink-soft: rgba(76, 45, 23, 0.62);
+    --line: var(--pale-wall);
+    --bg: var(--off-white);
+    --card: #FFFFFF;
+    --accent: var(--vermilion);
+    --accent-2: var(--burnt-orange);
+    --accent-soft: rgba(198, 172, 137, 0.22);
+    --danger: var(--burnt-orange);
+    --radius: 14px;
+
+    --font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-headline: "Poppins", sans-serif;
+    --font-subheadline: "Goudy Bookletter 1911", Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+  header.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+  .logo {
+    font-family: var(--font-headline);
+    font-weight: 600;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .logo span { color: var(--accent); }
+  .badge {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--card);
+  }
+  .skyheadline {
+    font-family: var(--font-headline);
+    font-weight: 400;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent-2);
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-family: var(--font-headline);
+    font-weight: 600;
+    font-size: 32px;
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .subtitle {
+    font-family: var(--font-subheadline);
+    color: var(--ink);
+    font-size: 19px;
+    line-height: 1.55;
+    max-width: 640px;
+    margin: 0 0 28px;
+  }
+
+  /* ---- Preset bar ---- */
+  .presets {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 0 0 34px;
+    padding: 16px 18px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .presets .plabel {
+    font-family: var(--font-headline);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    margin-right: 4px;
+  }
+  .preset-btn {
+    font-family: var(--font-headline);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .preset-btn:hover { border-color: var(--accent); }
+  .preset-btn.active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--off-white);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px 26px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-family: var(--font-headline);
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent-2);
+    margin: 0 0 18px;
+    font-weight: 600;
+  }
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .field .hint {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--ink);
+    background: #fff;
+  }
+  input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .unit {
+    font-size: 13px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    min-width: 30px;
+  }
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  /* ---- Sliders on the hero inputs ---- */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 3px;
+    background: var(--line);
+    margin: 12px 0 2px;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid #fff;
+    box-shadow: 0 1px 4px rgba(76,45,23,.35);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 20px; height: 20px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 1px 4px rgba(76,45,23,.35);
+  }
+  .slider-flag {
+    display: inline-block;
+    font-family: var(--font-headline);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    background: var(--accent-soft);
+    border-radius: 6px;
+    padding: 2px 7px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* ---- Result (dark, dominant) ---- */
+  .summary { position: sticky; top: 24px; }
+  .result {
+    background: var(--dark-chocolate);
+    border: none;
+    border-radius: var(--radius);
+    padding: 28px 28px 24px;
+    color: var(--off-white);
+    box-shadow: 0 18px 40px -22px rgba(76,45,23,.75);
+  }
+  .total-label {
+    font-family: var(--font-headline);
+    font-size: 12px;
+    color: var(--latte);
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    font-weight: 600;
+  }
+  .total-value {
+    font-family: var(--font-headline);
+    font-size: 64px;
+    font-weight: 700;
+    color: var(--vermilion);
+    letter-spacing: -0.03em;
+    line-height: 1.02;
+    margin: 8px 0 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .total-value.bump { animation: bump .28s ease; }
+  @keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.045)} 100%{transform:scale(1)} }
+  .total-sub {
+    font-size: 13.5px;
+    color: var(--latte);
+    margin-bottom: 20px;
+  }
+  .breakdown {
+    border-top: 1px solid rgba(198,172,137,.28);
+    padding-top: 14px;
+  }
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    padding: 7px 0;
+    color: var(--off-white);
+  }
+  .breakdown-row span:first-child { color: var(--latte); }
+  .breakdown-row .val { font-variant-numeric: tabular-nums; font-weight: 500; }
+  .defense {
+    font-size: 12px;
+    color: rgba(249,250,236,.6);
+    margin: -2px 0 6px;
+    padding-left: 0;
+    line-height: 1.45;
+  }
+
+  /* ---- Offer / anchor block ---- */
+  .offer {
+    margin-top: 22px;
+    border-top: 1px solid rgba(198,172,137,.28);
+    padding-top: 20px;
+  }
+  .offer-compare {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .oc-col .oc-cap {
+    font-family: var(--font-headline);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--latte);
+    margin-bottom: 4px;
+  }
+  .oc-col .oc-num {
+    font-family: var(--font-headline);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .oc-risk .oc-num { font-size: 26px; color: var(--vermilion); }
+  .oc-price .oc-num { font-size: 26px; color: var(--off-white); }
+  .oc-sub { font-size: 11.5px; color: var(--latte); margin-top: 2px; }
+  .oc-vs {
+    font-family: var(--font-headline);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--latte);
+    text-align: center;
+  }
+  .cta {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-family: var(--font-headline);
+    font-weight: 600;
+    font-size: 16px;
+    color: #fff;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    padding: 15px 18px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .15s ease, transform .05s ease;
+  }
+  .cta:hover { background: var(--accent-2); }
+  .cta:active { transform: translateY(1px); }
+  .guarantee {
+    font-size: 12px;
+    color: var(--latte);
+    text-align: center;
+    margin: 12px 0 0;
+    line-height: 1.45;
+  }
+
+  .note {
+    margin-top: 18px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .note strong { color: var(--ink); }
+
+  .tools {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn-ghost {
+    font-family: var(--font-headline);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--latte);
+    background: transparent;
+    border: 1px solid rgba(198,172,137,.45);
+    border-radius: 8px;
+    padding: 9px 14px;
+    cursor: pointer;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--off-white); }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* ---- Mobile sticky payoff bar ---- */
+  .mobile-total {
+    display: none;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 40;
+    background: var(--dark-chocolate);
+    color: var(--off-white);
+    padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 -8px 24px -14px rgba(0,0,0,.6);
+  }
+  .mobile-total .mt-label {
+    font-family: var(--font-headline);
+    font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--latte);
+  }
+  .mobile-total .mt-val {
+    font-family: var(--font-headline);
+    font-size: 22px; font-weight: 700; color: var(--vermilion);
+    font-variant-numeric: tabular-nums;
+  }
+  .mobile-total .cta {
+    width: auto; padding: 11px 18px; font-size: 14px;
+  }
+
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+    .summary { position: static; }
+    h1 { font-size: 27px; }
+    .total-value { font-size: 52px; }
+    .wrap { padding-bottom: 120px; }
+    .mobile-total { display: flex; }
+    body.mode-reveal .mobile-total .cta { display: none; }
+  }
+
+  /* mode=reveal: hide the offer so only the shock number shows (webinar hook slide) */
+  body.mode-reveal .offer { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .total-value.bump { animation: none; }
+    * { scroll-behavior: auto; }
+  }
+
+  /* ---- Print ---- */
+  @media print {
+    .presets, .tools, .cta, .mobile-total, .badge, input[type="range"], .slider-flag { display: none !important; }
+    body { background: #fff; }
+    .result { box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="logo">On<span>Apply</span></div>
+    <div class="badge">Fehlbesetzungsrechner</div>
+  </header>
+
+  <p class="skyheadline">OnApply · Recruiting-Tools</p>
+  <h1>Was kostet Sie eine Fehlbesetzung wirklich?</h1>
+  <p class="subtitle">
+    Die meisten Geschäftsführer:innen kennen nur das Gehalt der Position – nicht die vollen Kosten
+    einer falschen Personalentscheidung. Dieser Rechner macht sie sichtbar. Jede Zahl geben Sie selbst
+    ein: es ist Ihre Rechnung, nicht eine Studie aus Amerika.
+  </p>
+
+  <div class="presets">
+    <span class="plabel">Schnellstart:</span>
+    <button class="preset-btn" data-preset="sachbearbeitung">Sachbearbeitung</button>
+    <button class="preset-btn active" data-preset="fachkraft">Fachkraft</button>
+    <button class="preset-btn" data-preset="fuehrung">Führungskraft / Vertrieb</button>
+  </div>
+
+  <div class="grid">
+    <div class="inputs">
+
+      <div class="card">
+        <h2>1. Grunddaten der Position</h2>
+        <div class="field">
+          <label for="gehalt">Monatliches Bruttogehalt</label>
+          <div class="input-row">
+            <input type="number" id="gehalt" value="4500" min="0" step="100">
+            <span class="unit">€</span>
+          </div>
+          <input type="range" id="gehalt_r" min="2000" max="12000" step="100" value="4500" aria-label="Bruttogehalt Regler">
+        </div>
+        <div class="field">
+          <label for="faktor">Lohnnebenkosten-Faktor</label>
+          <div class="hint">Arbeitgeberkosten ≈ Gehalt × Faktor (üblich: 1,2–1,3)</div>
+          <div class="input-row">
+            <input type="number" id="faktor" value="1.3" min="1" step="0.05">
+            <span class="unit">×</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2. Ursprüngliche Einstellung</h2>
+        <div class="field">
+          <label for="recruiting1">Kosten für Anzeigen, Jobbörsen, Agentur/Headhunter</label>
+          <div class="input-row">
+            <input type="number" id="recruiting1" value="3000" min="0" step="100">
+            <span class="unit">€</span>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="field">
+            <label for="recruiting_std">Eigene Zeit fürs Recruiting</label>
+            <div class="input-row">
+              <input type="number" id="recruiting_std" value="20" min="0" step="1">
+              <span class="unit">Std.</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="stundensatz_gf">Stundensatz GF/HR</label>
+            <div class="input-row">
+              <input type="number" id="stundensatz_gf" value="80" min="0" step="5">
+              <span class="unit">€/Std.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>3. Beschäftigungsdauer &amp; Produktivität</h2>
+        <div class="field">
+          <label for="monate">Monate bis zur Trennungsentscheidung</label>
+          <div class="input-row">
+            <input type="number" id="monate" value="5" min="0" step="1">
+            <span class="unit">Monate</span>
+          </div>
+          <input type="range" id="monate_r" min="0" max="18" step="1" value="5" aria-label="Monate Regler">
+        </div>
+        <div class="field">
+          <label for="produktivitaet">Durchschnittliche Produktivität in dieser Zeit</label>
+          <div class="hint">Geschätzter Anteil der erwarteten Leistung, der tatsächlich erbracht wurde</div>
+          <div class="input-row">
+            <input type="number" id="produktivitaet" value="40" min="0" max="100" step="5">
+            <span class="unit">%</span>
+          </div>
+          <input type="range" id="produktivitaet_r" min="0" max="100" step="5" value="40" aria-label="Produktivität Regler">
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>4. Onboarding &amp; Team-Zeit</h2>
+        <div class="two-col">
+          <div class="field">
+            <label for="onboarding_std">Einarbeitungszeit durch Kolleg:innen</label>
+            <div class="input-row">
+              <input type="number" id="onboarding_std" value="40" min="0" step="1">
+              <span class="unit">Std.</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="stundensatz_kollegen">Stundensatz Kolleg:innen</label>
+            <div class="input-row">
+              <input type="number" id="stundensatz_kollegen" value="45" min="0" step="5">
+              <span class="unit">€/Std.</span>
+            </div>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="field">
+            <label for="fk_std">Führungszeit (Meetings, Korrekturen, Nacharbeit)</label>
+            <div class="input-row">
+              <input type="number" id="fk_std" value="25" min="0" step="1">
+              <span class="unit">Std.</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="stundensatz_fk">Stundensatz Führungskraft</label>
+            <div class="input-row">
+              <input type="number" id="stundensatz_fk" value="80" min="0" step="5">
+              <span class="unit">€/Std.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>5. Trennung</h2>
+        <div class="two-col">
+          <div class="field">
+            <label for="kuendigung_monate">Kündigungsfrist / Freistellung</label>
+            <div class="hint">Weiterlaufendes Gehalt ohne Gegenleistung</div>
+            <div class="input-row">
+              <input type="number" id="kuendigung_monate" value="1" min="0" step="0.5">
+              <span class="unit">Monate</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="abfindung">Abfindung (falls vereinbart)</label>
+            <div class="input-row">
+              <input type="number" id="abfindung" value="0" min="0" step="500">
+              <span class="unit">€</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>6. Wiederbesetzung</h2>
+        <div class="field">
+          <label for="recruiting2">Erneute Recruiting-Kosten für die Nachbesetzung</label>
+          <div class="input-row">
+            <input type="number" id="recruiting2" value="3000" min="0" step="100">
+            <span class="unit">€</span>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="field">
+            <label for="vakanz_monate">Vakanzzeit bis Neubesetzung</label>
+            <div class="input-row">
+              <input type="number" id="vakanz_monate" value="2" min="0" step="0.5">
+              <span class="unit">Monate</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="vakanz_wert">Entgangener Wertbeitrag / Monat</label>
+            <div class="hint">Optional: z. B. entgangener Umsatz oder Mehrbelastung des Teams</div>
+            <div class="input-row">
+              <input type="number" id="vakanz_wert" value="0" min="0" step="500">
+              <span class="unit">€</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="summary">
+      <div class="result">
+        <div class="total-label">Gesamtkosten der Fehlbesetzung</div>
+        <div class="total-value" id="total">0 €</div>
+        <div class="total-sub" id="totalSub">entspricht 0 Monatsgehältern dieser Position</div>
+
+        <div class="breakdown">
+          <div class="breakdown-row"><span>Produktivitätsverlust</span><span class="val" id="b1">0 €</span></div>
+          <div class="defense">Volle Arbeitgeberkosten für Teilleistung — die Differenz ist bezahlte, nicht erbrachte Arbeit.</div>
+          <div class="breakdown-row"><span>Ursprüngliches Recruiting</span><span class="val" id="b2">0 €</span></div>
+          <div class="breakdown-row"><span>Onboarding &amp; Team-Zeit</span><span class="val" id="b3">0 €</span></div>
+          <div class="breakdown-row"><span>Trennungskosten</span><span class="val" id="b4">0 €</span></div>
+          <div class="breakdown-row"><span>Wiederbesetzung</span><span class="val" id="b5">0 €</span></div>
+        </div>
+
+        <div class="offer" id="offer">
+          <div class="offer-compare">
+            <div class="oc-col oc-risk">
+              <div class="oc-cap">Ihre Fehlbesetzung</div>
+              <div class="oc-num" id="offerRisk">0 €</div>
+              <div class="oc-sub">pro Fehlgriff — und aufwärts</div>
+            </div>
+            <div class="oc-vs">vs</div>
+            <div class="oc-col oc-price">
+              <div class="oc-cap">Scorecard-Sprint</div>
+              <div class="oc-num">199 €</div>
+              <div class="oc-sub">einmalig — voll anrechenbar</div>
+            </div>
+          </div>
+          <a class="cta" id="cta" href="#">Scorecard-Sprint sichern →</a>
+          <p class="guarantee">
+            In einer Stunde bauen wir mit Ihnen die Scorecard für Ihre offene Stelle.
+            Kein einsatzfertiges Ergebnis? Kostet nichts. Das Risiko trage ich, nicht Sie.
+          </p>
+        </div>
+
+        <div class="tools">
+          <button class="btn-ghost" id="printBtn">Als PDF speichern / drucken</button>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>Warum das belastbar ist:</strong> Jede Position hier ist Ihr eigener Wert — kein
+        Branchendurchschnitt, keine importierte Studie. Der Rechner ersetzt keine
+        betriebswirtschaftliche Einzelfallprüfung, macht die Größenordnung aber sichtbar.
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>© OnApply – Fehlbesetzungsrechner zur Orientierung, keine Rechts- oder Steuerberatung.</span>
+    <span><a href="https://www.onapply.de">onapply.de</a></span>
+  </footer>
+
+</div>
+
+<!-- Mobile: payoff + CTA always visible -->
+<div class="mobile-total" id="mobileTotal">
+  <div>
+    <div class="mt-label">Fehlbesetzung</div>
+    <div class="mt-val" id="mtVal">0 €</div>
+  </div>
+  <a class="cta" id="ctaMobile" href="#">Sprint sichern →</a>
+</div>
+
+<script>
+  /* ---- Config ---- */
+  // Override per URL: ?cta=https://…
+  const DEFAULT_CTA = "https://www.onapply.de/kontakt";
+
+  /* ---- Presets (kompletter Szenario-Satz, ein Tap = tippfreie Live-Demo) ---- */
+  const PRESETS = {
+    sachbearbeitung: {
+      gehalt:3200, faktor:1.3, recruiting1:1500, recruiting_std:12, stundensatz_gf:70,
+      monate:4, produktivitaet:45, onboarding_std:30, stundensatz_kollegen:40,
+      fk_std:15, stundensatz_fk:75, kuendigung_monate:1, abfindung:0,
+      recruiting2:1500, vakanz_monate:1.5, vakanz_wert:0
+    },
+    fachkraft: {
+      gehalt:4500, faktor:1.3, recruiting1:3000, recruiting_std:20, stundensatz_gf:80,
+      monate:5, produktivitaet:40, onboarding_std:40, stundensatz_kollegen:45,
+      fk_std:25, stundensatz_fk:80, kuendigung_monate:1, abfindung:0,
+      recruiting2:3000, vakanz_monate:2, vakanz_wert:0
+    },
+    fuehrung: {
+      gehalt:7500, faktor:1.3, recruiting1:12000, recruiting_std:25, stundensatz_gf:90,
+      monate:7, produktivitaet:35, onboarding_std:50, stundensatz_kollegen:55,
+      fk_std:40, stundensatz_fk:100, kuendigung_monate:3, abfindung:15000,
+      recruiting2:12000, vakanz_monate:3, vakanz_wert:8000
+    }
+  };
+
+  const ids = [
+    "gehalt","faktor","recruiting1","recruiting_std","stundensatz_gf",
+    "monate","produktivitaet","onboarding_std","stundensatz_kollegen",
+    "fk_std","stundensatz_fk","kuendigung_monate","abfindung",
+    "recruiting2","vakanz_monate","vakanz_wert"
+  ];
+  const sliderPairs = [["gehalt","gehalt_r"],["monate","monate_r"],["produktivitaet","produktivitaet_r"]];
+
+  const $ = id => document.getElementById(id);
+  const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
+  const fmt = n => n.toLocaleString("de-DE", { style:"currency", currency:"EUR", maximumFractionDigits:0 });
+
+  let lastTotal = 0;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function animateTotal(el, from, to) {
+    if (reduceMotion || from === to) { el.textContent = fmt(to); return; }
+    const dur = 320, t0 = performance.now();
+    el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
+    function step(now){
+      const p = Math.min((now - t0)/dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(Math.round((from + (to-from)*eased)/100)*100);
+      if (p < 1) requestAnimationFrame(step); else el.textContent = fmt(to);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function calculate() {
+    const monat = num("gehalt") * num("faktor");
+    const prodVerlust = monat * num("monate") * (1 - num("produktivitaet")/100);
+    const recOriginal = num("recruiting1") + num("recruiting_std")*num("stundensatz_gf");
+    const onboarding  = num("onboarding_std")*num("stundensatz_kollegen") + num("fk_std")*num("stundensatz_fk");
+    const trennung    = monat*num("kuendigung_monate") + num("abfindung");
+    const wieder      = num("recruiting2") + num("vakanz_monate")*num("vakanz_wert");
+    const total = prodVerlust + recOriginal + onboarding + trennung + wieder;
+
+    $("b1").textContent = fmt(prodVerlust);
+    $("b2").textContent = fmt(recOriginal);
+    $("b3").textContent = fmt(onboarding);
+    $("b4").textContent = fmt(trennung);
+    $("b5").textContent = fmt(wieder);
+
+    animateTotal($("total"), lastTotal, total);
+    $("offerRisk").textContent = fmt(total);
+    $("mtVal").textContent = fmt(total);
+    lastTotal = total;
+
+    const g = num("gehalt");
+    const mg = g > 0 ? (total/g).toFixed(1).replace(".", ",") : "0";
+    $("totalSub").textContent = "entspricht " + mg + " Monatsgehältern dieser Position";
+  }
+
+  function syncSliders() {
+    sliderPairs.forEach(([n, r]) => { if ($(r)) $(r).value = $(n).value; });
+  }
+
+  function applyPreset(key) {
+    const p = PRESETS[key]; if (!p) return;
+    Object.keys(p).forEach(k => { if ($(k)) $(k).value = p[k]; });
+    syncSliders();
+    document.querySelectorAll(".preset-btn").forEach(b =>
+      b.classList.toggle("active", b.dataset.preset === key));
+    calculate();
+  }
+
+  /* ---- Wiring ---- */
+  ids.forEach(id => $(id).addEventListener("input", () => { syncSliders(); calculate(); }));
+  sliderPairs.forEach(([n, r]) => {
+    if ($(r)) $(r).addEventListener("input", () => { $(n).value = $(r).value; calculate(); });
+  });
+  document.querySelectorAll(".preset-btn").forEach(b =>
+    b.addEventListener("click", () => applyPreset(b.dataset.preset)));
+  $("printBtn").addEventListener("click", () => window.print());
+
+  /* ---- URL params: ?cta= , ?preset= , ?mode=reveal ---- */
+  const q = new URLSearchParams(location.search);
+  // Only https links to known hosts; blocks javascript:/data: and foreign redirects
+  const CTA_HOSTS = /(^|\.)(onapply\.de|cal\.com)$/;
+  function safeCta(raw) {
+    try {
+      const u = new URL(raw);
+      return u.protocol === "https:" && CTA_HOSTS.test(u.hostname) ? u.href : DEFAULT_CTA;
+    } catch { return DEFAULT_CTA; }
+  }
+  const ctaUrl = q.get("cta") ? safeCta(q.get("cta")) : DEFAULT_CTA;
+  $("cta").href = ctaUrl;
+  $("ctaMobile").href = ctaUrl;
+  if (q.get("mode") === "reveal") document.body.classList.add("mode-reveal");
+  if (q.get("preset") && PRESETS[q.get("preset")]) applyPreset(q.get("preset"));
+
+  syncSliders();
+  calculate();
+</script>
+
+</body>
+</html>
