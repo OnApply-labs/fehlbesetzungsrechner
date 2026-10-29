@@ -810,8 +810,8 @@
 
   /* ---- URL params: ?cta= , ?preset= , ?mode=reveal ---- */
   const q = new URLSearchParams(location.search);
-  // Only https links to known hosts; blocks javascript:/data: and foreign redirects
-  const CTA_HOSTS = /(^|\.)(onapply\.de|cal\.com)$/;
+  // Only https links to onapply.de; blocks javascript:/data: and foreign redirects
+  const CTA_HOSTS = /(^|\.)onapply\.de$/;
   function safeCta(raw) {
     try {
       const u = new URL(raw);
